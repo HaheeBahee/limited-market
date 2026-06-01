@@ -4,11 +4,16 @@ import com.bookstore.api.domain.auth.dto.LoginRequest;
 import com.bookstore.api.domain.auth.dto.LoginResponse;
 import com.bookstore.api.domain.auth.dto.SignupRequest;
 import com.bookstore.api.domain.auth.dto.TokenResponse;
+import com.bookstore.api.global.exception.auth.InvalidTokenException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,5 +56,72 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new LoginResponse(tokenResponse.accessToken()));
+    }
+
+    // Access Token 재발급
+    @PostMapping("/reissue")
+    public ResponseEntity<LoginResponse> reissue(HttpServletRequest request) {
+
+        // 쿠키에서 Refresh Token 추출
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        if (refreshToken == null) {
+            throw new InvalidTokenException();
+        }
+
+        TokenResponse tokenResponse = authService.reissue(refreshToken);
+
+        // 새 Refresh Token 쿠키 설정
+        ResponseCookie refreshCookie = ResponseCookie
+                .from("refreshToken", tokenResponse.refreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .maxAge(Duration.ofDays(1))
+                .path("/")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new LoginResponse(tokenResponse.accessToken()));
+    }
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal Long memberId){
+
+        // Authorization 헤더에서 Access Token 추출
+        String authHeader = request.getHeader("Authorization");
+        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
+            throw new InvalidTokenException();
+        }
+        String accessToken = authHeader.substring(7);
+
+        authService.logout(accessToken, memberId);
+
+        // Refresh Token 쿠키 삭제 (maxAge=0)
+        ResponseCookie deleteCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .maxAge(0)
+                .path("/")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
+    }
+
+    // 쿠키에서 Refresh Token 추출
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("refreshToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

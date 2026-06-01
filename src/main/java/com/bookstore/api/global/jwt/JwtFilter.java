@@ -1,6 +1,7 @@
 package com.bookstore.api.global.jwt;
 
 import com.bookstore.api.domain.member.Role;
+import com.bookstore.api.global.redis.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -33,6 +35,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 2. 토큰 검증 - 서명, 만료시간 등 검증
         if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
+
+            // 추가: 블랙리스트 확인 (로그아웃된 토큰이면 인증 정보 저장 안 함)
+            if (redisService.isBlacklisted(token)) {
+                log.warn("블랙리스트에 등록된 토큰 사용 시도");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // 3. 토큰에서 memberId, role 추출
             Long memberId = jwtProvider.getMemberId(token);

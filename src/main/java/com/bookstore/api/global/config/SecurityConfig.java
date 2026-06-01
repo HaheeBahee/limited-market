@@ -2,6 +2,7 @@ package com.bookstore.api.global.config;
 
 import com.bookstore.api.global.jwt.JwtFilter;
 import com.bookstore.api.global.jwt.JwtProvider;
+import com.bookstore.api.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,7 +37,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
-                        new JwtFilter(jwtProvider),
+                        new JwtFilter(jwtProvider, redisService),
                         UsernamePasswordAuthenticationFilter.class
                 );
 
