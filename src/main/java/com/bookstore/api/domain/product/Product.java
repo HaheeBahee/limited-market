@@ -15,7 +15,10 @@ public class Product extends BaseEntity {
     @Column(name = "product_id")
     private Long id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false, precision = 10, scale = 2)

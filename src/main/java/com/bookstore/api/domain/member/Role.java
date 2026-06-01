@@ -1,5 +1,5 @@
 package com.bookstore.api.domain.member;
 
-public enum Grade{
-    BASIC, VIP
+public enum Role {
+    USER, ADMIN
 }
