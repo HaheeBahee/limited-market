@@ -3,10 +3,13 @@ package com.bookstore.api.domain.delivery;
 import com.bookstore.api.domain.order.Order;
 import com.bookstore.api.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Delivery extends BaseEntity {
 
     @Id
@@ -37,4 +40,7 @@ public class Delivery extends BaseEntity {
     @Column(nullable = false)
     private DeliveryStatus deliveryStatus; // READY, SHIPPING, DELIVERED
 
+    public boolean isCancellable(){
+        return this.deliveryStatus == DeliveryStatus.READY;
+    }
 }

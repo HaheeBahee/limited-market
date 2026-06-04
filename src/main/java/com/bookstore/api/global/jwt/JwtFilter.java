@@ -2,6 +2,7 @@ package com.bookstore.api.global.jwt;
 
 import com.bookstore.api.domain.member.Role;
 import com.bookstore.api.global.redis.RedisService;
+import com.bookstore.api.global.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,13 +10,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,16 +46,15 @@ public class JwtFilter extends OncePerRequestFilter {
             Long memberId = jwtProvider.getMemberId(token);
             Role role = jwtProvider.getRole(token);
 
-            // 4. 권한(Authority) 객체 생성
-            SimpleGrantedAuthority authority =
-                    new SimpleGrantedAuthority("ROLE_" + role.name());
+            // 4. CustomUserDetails 생성 (권한 포함)
+            CustomUserDetails userDetails = new CustomUserDetails(memberId, role);
 
             // 5. Authentication 객체 생성
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            memberId,
+                            userDetails,
                             null,
-                            List.of(authority)
+                            userDetails.getAuthorities()
                     );
 
             // 6. SecurityContext에 인증 정보 저장

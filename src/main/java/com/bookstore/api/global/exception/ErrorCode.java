@@ -20,7 +20,9 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다"),
 
     // 상품
+    DUPLICATE_PRODUCT_CODE(HttpStatus.CONFLICT, "DUPLICATE_PRODUCT_CODE", "이미 존재하는 상품 코드입니다"),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다"),
+    SALE_NOT_FOUND(HttpStatus.NOT_FOUND, "SALE_NOT_FOUND", "판매 정보를 찾을 수 없습니다"),
     SALE_NOT_OPEN(HttpStatus.BAD_REQUEST, "SALE_NOT_OPEN", "아직 판매 시간이 아닙니다"),
     SALE_CLOSED(HttpStatus.BAD_REQUEST, "SALE_CLOSED", "판매가 종료되었습니다"),
     SALE_SOLD_OUT(HttpStatus.CONFLICT, "SALE_SOLD_OUT", "주문에 실패했습니다"),

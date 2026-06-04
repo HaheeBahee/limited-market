@@ -1,17 +1,24 @@
 package com.bookstore.api.domain.order;
 
 import com.bookstore.api.domain.member.Member;
-import com.bookstore.api.domain.sale.Sale;
 import com.bookstore.api.global.BaseEntity;
+import com.bookstore.api.global.exception.CustomException;
+import com.bookstore.api.global.exception.ErrorCode;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
 
@@ -19,15 +26,29 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_id")
-    private Sale sale;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus orderStatus;
 
-    @Column(nullable = false)
-    private int totalPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPrice;
 
+    public static Order create(
+            Member member,
+            BigDecimal totalPrice
+    ) {
+        Order order = new Order();
+        order.member = member;
+        order.orderStatus = OrderStatus.PENDING;
+        order.totalPrice = totalPrice;
+        return order;
+    }
+
+    public void cancel() {
+        if (this.orderStatus == OrderStatus.CANCELLED
+                || this.orderStatus == OrderStatus.FAILED) {
+            throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
+        }
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
 }
