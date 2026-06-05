@@ -45,10 +45,11 @@ public class Order extends BaseEntity {
     }
 
     public void cancel() {
-        if (this.orderStatus == OrderStatus.CANCELLED
-                || this.orderStatus == OrderStatus.FAILED) {
+        if (this.orderStatus != OrderStatus.PENDING
+                && this.orderStatus != OrderStatus.PAID) {
             throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
         }
+
         this.orderStatus = OrderStatus.CANCELLED;
     }
 }

@@ -25,12 +25,12 @@ public enum ErrorCode {
     SALE_NOT_FOUND(HttpStatus.NOT_FOUND, "SALE_NOT_FOUND", "판매 정보를 찾을 수 없습니다"),
     SALE_NOT_OPEN(HttpStatus.BAD_REQUEST, "SALE_NOT_OPEN", "아직 판매 시간이 아닙니다"),
     SALE_CLOSED(HttpStatus.BAD_REQUEST, "SALE_CLOSED", "판매가 종료되었습니다"),
-    SALE_SOLD_OUT(HttpStatus.CONFLICT, "SALE_SOLD_OUT", "주문에 실패했습니다"),
-    STOCK_OUT(HttpStatus.CONFLICT, "STOCK_OUT", "주문에 실패했습니다"),
+    OUT_OF_STOCK(HttpStatus.CONFLICT, "OUT_OF_STOCK", "주문 가능한 재고가 부족합니다"),
 
     // 주문
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다"),
     ORDER_CANCEL_FAILED(HttpStatus.BAD_REQUEST, "ORDER_CANCEL_FAILED", "취소할 수 없는 주문입니다"),
+    DUPLICATE_SALE_ITEM(HttpStatus.BAD_REQUEST, "DUPLICATE_SALE_ITEM", "중복된 판매 상품이 포함되어 있습니다"),
 
     // 결제
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "PAYMENT_FAILED", "결제에 실패했습니다"),

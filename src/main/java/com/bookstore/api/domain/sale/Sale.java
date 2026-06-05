@@ -1,5 +1,6 @@
 package com.bookstore.api.domain.sale;
 
+import com.bookstore.api.domain.member.Grade;
 import com.bookstore.api.domain.product.Product;
 import com.bookstore.api.global.BaseEntity;
 import jakarta.persistence.*;
@@ -33,6 +34,7 @@ public class Sale extends BaseEntity {
     @Column(nullable = false)
     private int remainQuantity;
 
+    @Column(nullable = false)
     private LocalDateTime vipOpenAt;
 
     @Column(nullable = false)
@@ -84,10 +86,45 @@ public class Sale extends BaseEntity {
     }
 
     public void decreaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException();
+        }
+
+        if (this.remainQuantity < quantity) {
+            throw new IllegalArgumentException();
+        }
+
         this.remainQuantity -= quantity;
+
+        if (this.remainQuantity == 0) {
+            this.saleStatus = SaleStatus.SOLD_OUT;
+        }
     }
 
-    public void restoreStock(int quantity) {
+    public void restoreStock(int quantity, LocalDateTime now) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException();
+        }
+
         this.remainQuantity += quantity;
+
+        if (this.saleStatus == SaleStatus.SOLD_OUT && this.remainQuantity > 0) {
+            if (now.isBefore(this.vipOpenAt)) {
+                this.saleStatus = SaleStatus.UPCOMING;
+            } else if (now.isBefore(this.generalOpenAt)) {
+                this.saleStatus = SaleStatus.VIP_OPEN;
+            } else if (now.isAfter(this.closeAt)) {
+                this.saleStatus = SaleStatus.CLOSED;
+            } else {
+                this.saleStatus = SaleStatus.ON_SALE;
+            }
+        }
+    }
+
+    public LocalDateTime getOrderOpenAt(Grade grade) {
+        if (grade == Grade.VIP) {
+            return vipOpenAt;
+        }
+        return generalOpenAt;
     }
 }

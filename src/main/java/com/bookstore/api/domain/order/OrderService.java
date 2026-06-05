@@ -9,7 +9,6 @@ import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
 import com.bookstore.api.domain.sale.Sale;
 import com.bookstore.api.domain.sale.SaleRepository;
-import com.bookstore.api.domain.sale.SaleStatus;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,19 +38,27 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 2. Sale 한번에 조회
+        // 2. SaleId 추출
         List<Long> saleIds = request.items().stream()
                 .map(OrderItemRequest::saleId)
                 .toList();
 
+        // 중복 SaldId 검증
+        Set<Long> uniqueIds = new HashSet<>(saleIds);
+
+        if (uniqueIds.size() != saleIds.size()) {
+            throw new CustomException(ErrorCode.DUPLICATE_SALE_ITEM);
+        }
+
+        // Sale 조회
         List<Sale> sales = saleRepository.findAllById(saleIds);
 
-        // findAllById는 존재하지 않는 ID를 무시하므로 size 비교로 누락 여부 확인
+        // 존재 여부 검증
         if (sales.size() != saleIds.size()) {
             throw new CustomException(ErrorCode.SALE_NOT_FOUND);
         }
 
-        // 3. Sale O(1) 조회를 위해 Map으로 변환
+        // 3. saleId별 요청 수량을 빠르게 조회하기 위해 Map으로 변환
         Map<Long, Integer> quantityBySaleId = request.items().stream()
                 .collect(Collectors.toMap(
                         OrderItemRequest::saleId,
@@ -67,8 +72,10 @@ public class OrderService {
         for (Sale sale : sales) {
             int requestedQuantity = quantityBySaleId.get(sale.getId());
 
-            // 판매 시작 전 (saleStatus 대신 시간 기반 체크)
-            if (now.isBefore(sale.getGeneralOpenAt())) {
+            LocalDateTime openAt = sale.getOrderOpenAt(member.getGrade());
+
+            // 판매 시작 전
+            if (now.isBefore(openAt)) {
                 throw new CustomException(ErrorCode.SALE_NOT_OPEN);
             }
 
@@ -77,14 +84,9 @@ public class OrderService {
                 throw new CustomException(ErrorCode.SALE_CLOSED);
             }
 
-            // 재고 소진
-            if (sale.getRemainQuantity() == 0) {
-                throw new CustomException(ErrorCode.SALE_SOLD_OUT);
-            }
-
             // 재고 부족
             if (sale.getRemainQuantity() < requestedQuantity) {
-                throw new CustomException(ErrorCode.STOCK_OUT);
+                throw new CustomException(ErrorCode.OUT_OF_STOCK);
             }
 
 
@@ -100,7 +102,7 @@ public class OrderService {
         Order order = Order.create(member, totalPrice);
         orderRepository.save(order);
 
-        // 6. OrderItem 생성 + bulk insert
+        // 6. OrderItem 생성 후 일괄 저장
         List<OrderItem> orderItems = new ArrayList<>();
         for (Sale sale : sales) {
             int requestedQuantity = quantityBySaleId.get(sale.getId());
@@ -125,10 +127,10 @@ public class OrderService {
         }
 
         // PAID 주문이면 배송 상태 확인
-        if(order.getOrderStatus() == OrderStatus.PAID){
+        if (order.getOrderStatus() == OrderStatus.PAID) {
             Delivery delivery = deliveryRepository.findByOrderId(orderId)
                     .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
-            if(!delivery.isCancellable()){
+            if (!delivery.isCancellable()) {
                 throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
             }
         }
@@ -139,7 +141,7 @@ public class OrderService {
         // OrderItem 조회 -> 재고 복구
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
         for (OrderItem orderItem : orderItems) {
-            orderItem.getSale().restoreStock(orderItem.getQuantity());
+            orderItem.getSale().restoreStock(orderItem.getQuantity(), LocalDateTime.now());
         }
     }
 }
