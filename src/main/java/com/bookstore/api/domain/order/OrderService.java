@@ -12,8 +12,10 @@ import com.bookstore.api.domain.sale.SaleRepository;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +33,8 @@ public class OrderService {
     private final DeliveryRepository deliveryRepository;
 
     // 주문 생성
+
+    @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3)
     @Transactional
     public OrderCreateResponse create(OrderCreateRequest request, Long memberId) {
 

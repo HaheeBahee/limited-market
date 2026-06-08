@@ -3,12 +3,15 @@ package com.bookstore.api.domain.payment;
 import com.bookstore.api.domain.order.Order;
 import com.bookstore.api.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseEntity {
 
     @Id

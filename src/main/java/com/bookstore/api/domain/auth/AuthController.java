@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import com.bookstore.api.global.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -87,7 +88,7 @@ public class AuthController {
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal Long memberId){
+    public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails){
 
         // Authorization 헤더에서 Access Token 추출
         String authHeader = request.getHeader("Authorization");
@@ -96,7 +97,7 @@ public class AuthController {
         }
         String accessToken = authHeader.substring(7);
 
-        authService.logout(accessToken, memberId);
+        authService.logout(accessToken, userDetails.getMemberId());
 
         // Refresh Token 쿠키 삭제 (maxAge=0)
         ResponseCookie deleteCookie = ResponseCookie
