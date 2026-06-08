@@ -26,4 +26,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     // ON_SALE → CLOSED
     List<Sale> findByCloseAtBeforeAndSaleStatus(LocalDateTime now, SaleStatus status);
+
+    List<Sale> findBySaleStatusIn(List<SaleStatus> statuses);
+
 }

@@ -1,0 +1,35 @@
+package com.bookstore.api.domain.sale;
+
+import com.bookstore.api.global.exception.CustomException;
+import com.bookstore.api.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class RedisStockService {
+
+    private final StringRedisTemplate redisTemplate;
+
+    // 재고 초기화 - DB에 있는 재고 -> Redis
+    public void initStock(Long saleId, int quantity) {
+        redisTemplate.opsForValue().set("sale:stock:" + saleId, String.valueOf(quantity));
+    }
+
+    // 재고 차감 - 주문 요청에서 Redis에서 먼저 재고 차감
+    public void decrease(Long saleId, int quantity) {
+        Long remain = redisTemplate.opsForValue().decrement("sale:stock:" + saleId, quantity);
+
+        if (remain == null || remain < 0) {
+            redisTemplate.opsForValue().increment("sale:stock:" + saleId, quantity);
+            throw new CustomException(ErrorCode.OUT_OF_STOCK);
+        }
+    }
+
+    // 재고 복구 - 차감한 재고 복구
+    // 언제 사용 - DB 트랜잭션 실패 시, 주문 취소시
+    public void restore(Long saleId, int quantity) {
+        redisTemplate.opsForValue().increment("sale:stock:" + saleId, quantity);
+    }
+}
