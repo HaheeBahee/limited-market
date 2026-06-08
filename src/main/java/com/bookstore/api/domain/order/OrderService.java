@@ -8,15 +8,12 @@ import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
 import com.bookstore.api.domain.sale.RedisStockService;
-import com.bookstore.api.domain.sale.Sale;
-import com.bookstore.api.domain.sale.SaleRepository;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,9 +25,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final MemberRepository memberRepository;
-    private final SaleRepository saleRepository;
     private final DeliveryRepository deliveryRepository;
     private final RedisStockService redisStockService;
+    private final OrderCreateService orderCreateService;
 
     // 주문 생성
     public OrderCreateResponse create(OrderCreateRequest request, Long memberId) {
@@ -73,64 +70,13 @@ public class OrderService {
 
         // 5. DB 트랜잭션
         try {
-            return createOrder(member, saleIds, quantityBySaleId);
+            return orderCreateService.create(member, saleIds, quantityBySaleId);
         } catch (Exception e) {
             for (Long saleId : saleIds) {
                 redisStockService.restore(saleId, quantityBySaleId.get(saleId));
             }
             throw e;
         }
-    }
-
-    @Transactional
-    public OrderCreateResponse createOrder(Member member, List<Long> saleIds, Map<Long, Integer> quantityBySaleId) {
-
-        // Sale 조회 (락 없이)
-        List<Sale> sales = saleRepository.findAllById(saleIds);
-
-        if (sales.size() != saleIds.size()) {
-            throw new CustomException(ErrorCode.SALE_NOT_FOUND);
-        }
-
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        LocalDateTime now = LocalDateTime.now();
-
-        for (Sale sale : sales) {
-            int requestedQuantity = quantityBySaleId.get(sale.getId());
-
-            LocalDateTime openAt = sale.getOrderOpenAt(member.getGrade());
-
-            if (now.isBefore(openAt)) {
-                throw new CustomException(ErrorCode.SALE_NOT_OPEN);
-            }
-
-            if (now.isAfter(sale.getCloseAt())) {
-                throw new CustomException(ErrorCode.SALE_CLOSED);
-            }
-
-            // DB 최후 재고 검증
-            if (sale.getRemainQuantity() < requestedQuantity) {
-                throw new CustomException(ErrorCode.OUT_OF_STOCK);
-            }
-
-            totalPrice = totalPrice.add(
-                    sale.getSalePrice().multiply(BigDecimal.valueOf(requestedQuantity))
-            );
-
-            sale.decreaseStock(requestedQuantity);
-        }
-
-        Order order = Order.create(member, totalPrice);
-        orderRepository.save(order);
-
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (Sale sale : sales) {
-            int requestedQuantity = quantityBySaleId.get(sale.getId());
-            orderItems.add(OrderItem.create(order, sale, requestedQuantity));
-        }
-        orderItemRepository.saveAll(orderItems);
-
-        return OrderCreateResponse.from(order);
     }
 
     // 주문 취소 - 근데 여기도 취소 성공 메시지라도 보내야하는거 아닌가
