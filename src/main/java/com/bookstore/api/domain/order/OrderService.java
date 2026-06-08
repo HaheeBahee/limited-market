@@ -12,10 +12,8 @@ import com.bookstore.api.domain.sale.SaleRepository;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,7 +32,6 @@ public class OrderService {
 
     // 주문 생성
 
-    @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3)
     @Transactional
     public OrderCreateResponse create(OrderCreateRequest request, Long memberId) {
 
@@ -54,8 +51,8 @@ public class OrderService {
             throw new CustomException(ErrorCode.DUPLICATE_SALE_ITEM);
         }
 
-        // Sale 조회
-        List<Sale> sales = saleRepository.findAllById(saleIds);
+        // Sale 조회 (비관적 락 - SELECT FOR UPDATE)
+        List<Sale> sales = saleRepository.findAllByIdWithLock(saleIds);
 
         // 존재 여부 검증
         if (sales.size() != saleIds.size()) {
