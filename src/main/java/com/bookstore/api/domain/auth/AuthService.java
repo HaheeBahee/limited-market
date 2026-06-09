@@ -9,6 +9,7 @@ import com.bookstore.api.domain.member.MemberStatus;
 import com.bookstore.api.global.exception.auth.InvalidTokenException;
 import com.bookstore.api.global.exception.member.DuplicateEmailException;
 import com.bookstore.api.global.exception.member.MemberNotFoundException;
+import com.bookstore.api.global.jwt.JwtProperties;
 import com.bookstore.api.global.jwt.JwtProvider;
 import com.bookstore.api.global.redis.RedisService;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final JwtProperties jwtProperties;
     private final RedisService redisService;
 
     @Transactional
@@ -62,7 +64,7 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(member.getId(), member.getRole());
         String refreshToken = jwtProvider.createRefreshToken(member.getId());
 
-        redisService.saveRefreshToken(member.getId(), refreshToken, 1, TimeUnit.DAYS);
+        redisService.saveRefreshToken(member.getId(), refreshToken, jwtProperties.refreshTokenExpiration(), TimeUnit.MILLISECONDS);
 
         return new TokenResponse(accessToken, refreshToken);
     }
@@ -85,7 +87,7 @@ public class AuthService {
 
         String newAccessToken = jwtProvider.createAccessToken(member.getId(), member.getRole());
         String newRefreshToken = jwtProvider.createRefreshToken(member.getId());
-        redisService.saveRefreshToken(member.getId(), newRefreshToken, 3, TimeUnit.DAYS);
+        redisService.saveRefreshToken(member.getId(), newRefreshToken, jwtProperties.refreshTokenExpiration(), TimeUnit.MILLISECONDS);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
