@@ -9,6 +9,8 @@ import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
 import com.bookstore.api.domain.order.dto.OrderDetailResponse;
 import com.bookstore.api.domain.order.dto.OrderListResponse;
+import com.bookstore.api.domain.payment.Payment;
+import com.bookstore.api.domain.payment.PaymentRepository;
 import com.bookstore.api.domain.sale.Sale;
 import com.bookstore.api.domain.sale.SaleRepository;
 import com.bookstore.api.global.exception.CustomException;
@@ -32,6 +34,7 @@ public class OrderService {
     private final MemberRepository memberRepository;
     private final SaleRepository saleRepository;
     private final DeliveryRepository deliveryRepository;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
     public OrderCreateResponse create(OrderCreateRequest request, Long memberId) {
@@ -125,6 +128,10 @@ public class OrderService {
                 throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
             }
             delivery.cancel();
+
+            Payment payment = paymentRepository.findByOrderId(orderId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+            payment.refund();
         }
 
         order.cancel();

@@ -34,6 +34,10 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
+    public void refund() {
+        this.paymentStatus = PaymentStatus.REFUNDED;
+    }
+
     public static Payment create(Order order, BigDecimal amount) {
         Payment payment = new Payment();
         payment.order = order;
