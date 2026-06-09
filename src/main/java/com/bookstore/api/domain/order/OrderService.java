@@ -4,6 +4,7 @@ import com.bookstore.api.domain.delivery.Delivery;
 import com.bookstore.api.domain.delivery.DeliveryRepository;
 import com.bookstore.api.domain.member.Member;
 import com.bookstore.api.domain.member.MemberRepository;
+import com.bookstore.api.domain.order.dto.OrderCancelledEvent;
 import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
@@ -11,6 +12,7 @@ import com.bookstore.api.domain.sale.RedisStockService;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class OrderService {
     private final DeliveryRepository deliveryRepository;
     private final RedisStockService redisStockService;
     private final OrderCreateService orderCreateService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 주문 생성
     public OrderCreateResponse create(OrderCreateRequest request, Long memberId) {
@@ -105,10 +108,12 @@ public class OrderService {
         order.cancel();
 
         // OrderItem 조회 -> 재고 복구
+        Map<Long, Integer> quantityBySaleId = new HashMap<>();
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
         for (OrderItem orderItem : orderItems) {
             orderItem.getSale().restoreStock(orderItem.getQuantity(), LocalDateTime.now());
-            redisStockService.restore(orderItem.getSale().getId(), orderItem.getQuantity());
+            quantityBySaleId.put(orderItem.getSale().getId(), orderItem.getQuantity());
         }
+        eventPublisher.publishEvent(new OrderCancelledEvent(new ArrayList<>(quantityBySaleId.keySet()), quantityBySaleId));
     }
 }
