@@ -25,22 +25,18 @@ public class ProductController {
     @PostMapping
     @Operation(summary = "상품 등록")
     public ResponseEntity<ProductCreateResponse> register(@RequestBody @Valid ProductCreateRequest request) {
-        ProductCreateResponse response = productService.registerProduct(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.registerProduct(request));
     }
 
     @GetMapping
     @Operation(summary = "상품 목록 조회")
     public ResponseEntity<List<ProductListResponse>> getProducts() {
-        List<ProductListResponse> response = productService.getProducts();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(productService.getProducts());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "상품 상세 조회")
     public ResponseEntity<ProductDetailResponse> getProduct(@PathVariable Long id) {
-        ProductDetailResponse response = productService.getProduct(id);
-        return ResponseEntity.ok(response);
-
+        return ResponseEntity.ok(productService.getProduct(id));
     }
 }

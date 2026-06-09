@@ -32,7 +32,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // 회원가입
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
     public ResponseEntity<Void> signup(@RequestBody @Valid SignupRequest request) {
@@ -40,44 +39,12 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    // 로그인
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "로그인 성공 후 반환된 accessToken을 상단 Authorize 버튼에 입력하세요")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
 
-        // 1. AuthService에서 두 토큰 모두 받아옴
         TokenResponse tokenResponse = authService.login(request);
 
-        // 2. Refresh Token httpOnly 쿠키 설정
-        ResponseCookie refreshCookie = ResponseCookie
-                .from("refreshToken", tokenResponse.refreshToken())  // 나중에 실제 refreshToken으로 교체
-                .httpOnly(true)
-                .secure(false)        // 로컬 개발 시 false, 배포 시 true
-                .sameSite("Lax")
-                .maxAge(Duration.ofDays(1))
-                .path("/")
-                .build();
-
-        // accessToken만 Body에 담아서 반환
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(new LoginResponse(tokenResponse.accessToken()));
-    }
-
-    // Access Token 재발급
-    @PostMapping("/reissue")
-    @Operation(summary = "Access Token 재발급", description = "쿠키의 Refresh Token으로 새 Access Token을 발급합니다")
-    public ResponseEntity<LoginResponse> reissue(HttpServletRequest request) {
-
-        // 쿠키에서 Refresh Token 추출
-        String refreshToken = extractRefreshTokenFromCookie(request);
-        if (refreshToken == null) {
-            throw new InvalidTokenException();
-        }
-
-        TokenResponse tokenResponse = authService.reissue(refreshToken);
-
-        // 새 Refresh Token 쿠키 설정
         ResponseCookie refreshCookie = ResponseCookie
                 .from("refreshToken", tokenResponse.refreshToken())
                 .httpOnly(true)
@@ -92,12 +59,35 @@ public class AuthController {
                 .body(new LoginResponse(tokenResponse.accessToken()));
     }
 
-    // 로그아웃
+    @PostMapping("/reissue")
+    @Operation(summary = "Access Token 재발급", description = "쿠키의 Refresh Token으로 새 Access Token을 발급합니다")
+    public ResponseEntity<LoginResponse> reissue(HttpServletRequest request) {
+
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        if (refreshToken == null) {
+            throw new InvalidTokenException();
+        }
+
+        TokenResponse tokenResponse = authService.reissue(refreshToken);
+
+        ResponseCookie refreshCookie = ResponseCookie
+                .from("refreshToken", tokenResponse.refreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .maxAge(Duration.ofDays(1))
+                .path("/")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new LoginResponse(tokenResponse.accessToken()));
+    }
+
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제합니다")
     public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        // Authorization 헤더에서 Access Token 추출
         String authHeader = request.getHeader("Authorization");
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
             throw new InvalidTokenException();
@@ -106,7 +96,6 @@ public class AuthController {
 
         authService.logout(accessToken, userDetails.getMemberId());
 
-        // Refresh Token 쿠키 삭제 (maxAge=0)
         ResponseCookie deleteCookie = ResponseCookie
                 .from("refreshToken", "")
                 .httpOnly(true)
@@ -121,7 +110,6 @@ public class AuthController {
                 .build();
     }
 
-    // 쿠키에서 Refresh Token 추출
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
 
