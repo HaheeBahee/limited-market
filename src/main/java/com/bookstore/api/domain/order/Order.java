@@ -53,7 +53,7 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.CANCELLED;
     }
 
-    public void pay() {
+    public void markAsPaid() {
         if (this.orderStatus != OrderStatus.PENDING) {
             throw new CustomException(ErrorCode.PAYMENT_FAILED);
         }

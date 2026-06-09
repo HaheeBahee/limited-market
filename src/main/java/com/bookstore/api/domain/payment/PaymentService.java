@@ -33,10 +33,10 @@ public class PaymentService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        order.markAsPaid();
+
         Payment payment = Payment.create(order, order.getTotalPrice());
         paymentRepository.save(payment);
-
-        order.pay();
         orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PAID, null));
 
         Delivery delivery = Delivery.create(
