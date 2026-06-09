@@ -30,8 +30,8 @@ public class SaleScheduler {
                         now, List.of(SaleStatus.UPCOMING, SaleStatus.VIP_OPEN))
                 .forEach(Sale::openForGeneral);
 
-        // ON_SALE → CLOSED
-        saleRepository.findByCloseAtBeforeAndSaleStatus(now, SaleStatus.ON_SALE)
+        // ON_SALE, SOLD_OUT → CLOSED
+        saleRepository.findByCloseAtBeforeAndSaleStatusIn(now, List.of(SaleStatus.ON_SALE, SaleStatus.SOLD_OUT))
                 .forEach(Sale::close);
 
         log.info("[SaleScheduler] 판매 상태 업데이트 완료 - {}", now);
