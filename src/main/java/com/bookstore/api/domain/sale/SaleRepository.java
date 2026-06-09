@@ -13,17 +13,16 @@ import java.util.List;
 @Repository
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
-    // 비관적 락 - SELECT FOR UPDATE
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Sale s WHERE s.id IN :ids")
     List<Sale> findAllByIdWithLock(@Param("ids") List<Long> ids);
 
-    // UPCOMING → VIP_OPEN
+    // 스케줄러용 - 상태 전환 대상 조회
     List<Sale> findByVipOpenAtBeforeAndSaleStatus(LocalDateTime now, SaleStatus status);
 
-    // UPCOMING or VIP_OPEN → ON_SALE
     List<Sale> findByGeneralOpenAtBeforeAndSaleStatusIn(LocalDateTime now, List<SaleStatus> statuses);
 
-    // ON_SALE → CLOSED
     List<Sale> findByCloseAtBeforeAndSaleStatus(LocalDateTime now, SaleStatus status);
+
+    List<Sale> findBySaleStatusIn(List<SaleStatus> statuses);
 }

@@ -2,6 +2,7 @@ package com.bookstore.api.domain.order;
 
 import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
+import com.bookstore.api.domain.order.dto.OrderListResponse;
 import com.bookstore.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,7 +31,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{orderId}/cancel/")
+    @GetMapping
+    @Operation(summary = "내 주문 목록 조회", description = "로그인한 회원의 주문 목록을 조회합니다.")
+    public ResponseEntity<List<OrderListResponse>> getOrders(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return ResponseEntity.ok(orderService.getOrders(userDetails.getMemberId()));
+    }
+
+    @PatchMapping("/{orderId}/cancel")
     @Operation(summary = "주문 취소", description = "PENDING 또는 PAID 상태의 주문만 취소 가능합니다")
     public ResponseEntity<Void> cancel(@PathVariable Long orderId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         orderService.cancel(orderId, userDetails.getMemberId());

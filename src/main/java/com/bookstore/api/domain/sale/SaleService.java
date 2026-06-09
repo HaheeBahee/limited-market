@@ -4,12 +4,14 @@ import com.bookstore.api.domain.product.Product;
 import com.bookstore.api.domain.product.ProductRepository;
 import com.bookstore.api.domain.sale.dto.SaleCreateRequest;
 import com.bookstore.api.domain.sale.dto.SaleCreateResponse;
+import com.bookstore.api.domain.sale.dto.SaleListResponse;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +20,6 @@ public class SaleService {
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
 
-    // 세일 생성
     @Transactional
     public SaleCreateResponse create(SaleCreateRequest request) {
 
@@ -34,5 +35,14 @@ public class SaleService {
 
         saleRepository.save(sale);
         return SaleCreateResponse.from(sale);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SaleListResponse> getSales() {
+        return saleRepository.findBySaleStatusIn(
+                        List.of(SaleStatus.VIP_OPEN, SaleStatus.ON_SALE)
+                ).stream()
+                .map(SaleListResponse::from)
+                .toList();
     }
 }

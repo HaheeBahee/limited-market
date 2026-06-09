@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -32,4 +33,13 @@ public class Payment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
+
+    public static Payment create(Order order, BigDecimal amount) {
+        Payment payment = new Payment();
+        payment.order = order;
+        payment.impUid = "mock_" + UUID.randomUUID();  // 실제 포트원 연동 시 교체
+        payment.amount = amount;
+        payment.paymentStatus = PaymentStatus.PAID;
+        return payment;
+    }
 }
