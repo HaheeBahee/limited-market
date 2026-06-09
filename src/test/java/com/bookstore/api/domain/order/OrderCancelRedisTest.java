@@ -37,6 +37,7 @@ class OrderCancelRedisTest {
     @Autowired private ProductRepository productRepository;
     @Autowired private RedisStockService redisStockService;
     @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired private OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     private Member member;
     private Sale sale;
@@ -67,10 +68,11 @@ class OrderCancelRedisTest {
     void tearDown() {
         redisTemplate.delete("sale:stock:" + sale.getId());
         orderItemRepository.deleteAll();
+        orderStatusHistoryRepository.deleteAll();
         orderRepository.deleteAll();
-        saleRepository.delete(sale);
-        memberRepository.delete(member);
+        saleRepository.deleteAll();
         productRepository.deleteAll();
+        memberRepository.delete(member);
     }
 
     @Test
