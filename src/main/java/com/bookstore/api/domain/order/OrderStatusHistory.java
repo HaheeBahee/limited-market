@@ -2,10 +2,13 @@ package com.bookstore.api.domain.order;
 
 import com.bookstore.api.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderStatusHistory extends BaseEntity {
 
     @Id
@@ -22,4 +25,12 @@ public class OrderStatusHistory extends BaseEntity {
     private OrderStatus status;
 
     private String reason;
+
+    public static OrderStatusHistory create(Order order, OrderStatus status, String reason) {
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.order = order;
+        history.status = status;
+        history.reason = reason;
+        return history;
+    }
 }
