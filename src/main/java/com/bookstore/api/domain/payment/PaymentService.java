@@ -1,7 +1,13 @@
 package com.bookstore.api.domain.payment;
 
+import com.bookstore.api.domain.delivery.Delivery;
+import com.bookstore.api.domain.delivery.DeliveryRepository;
 import com.bookstore.api.domain.order.Order;
 import com.bookstore.api.domain.order.OrderRepository;
+import com.bookstore.api.domain.order.OrderStatus;
+import com.bookstore.api.domain.order.OrderStatusHistory;
+import com.bookstore.api.domain.order.OrderStatusHistoryRepository;
+import com.bookstore.api.domain.delivery.dto.DeliveryRequest;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -14,25 +20,34 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final DeliveryRepository deliveryRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @Transactional
-    public void pay(Long orderId, Long memberId){
+    public void pay(Long orderId, Long memberId, DeliveryRequest deliveryRequest) {
 
-        // 1. 주문 조회
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        // 2. 본인 주문인지 확인
-        if(!order.getMember().getId().equals(memberId)){
+        if (!order.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // 3. Payment 생성 및 저장
         Payment payment = Payment.create(order, order.getTotalPrice());
         paymentRepository.save(payment);
 
-        // 4. Order 상태 변경 PENDING -> PAID
         order.pay();
+        orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PAID, null));
+
+        Delivery delivery = Delivery.create(
+                order,
+                deliveryRequest.recipientName(),
+                deliveryRequest.phone(),
+                deliveryRequest.city(),
+                deliveryRequest.street(),
+                deliveryRequest.zipcode()
+        );
+        deliveryRepository.save(delivery);
     }
 
 }

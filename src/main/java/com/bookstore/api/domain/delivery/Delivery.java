@@ -40,7 +40,24 @@ public class Delivery extends BaseEntity {
     @Column(nullable = false)
     private DeliveryStatus deliveryStatus; // READY, SHIPPING, DELIVERED
 
-    public boolean isCancellable(){
-        return this.deliveryStatus == DeliveryStatus.READY;
+    public static Delivery create(Order order, String recipientName, String phone,
+                                   String city, String street, String zipcode) {
+        Delivery delivery = new Delivery();
+        delivery.order = order;
+        delivery.recipientName = recipientName;
+        delivery.phone = phone;
+        delivery.city = city;
+        delivery.street = street;
+        delivery.zipcode = zipcode;
+        delivery.deliveryStatus = DeliveryStatus.PREPARING;
+        return delivery;
+    }
+
+    public boolean isCancellable() {
+        return this.deliveryStatus == DeliveryStatus.PREPARING;
+    }
+
+    public void cancel() {
+        this.deliveryStatus = DeliveryStatus.CANCELLED;
     }
 }

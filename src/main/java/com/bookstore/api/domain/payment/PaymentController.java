@@ -1,15 +1,15 @@
 package com.bookstore.api.domain.payment;
 
+import com.bookstore.api.domain.delivery.dto.DeliveryRequest;
 import com.bookstore.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -22,8 +22,9 @@ public class PaymentController {
     @PostMapping("/{orderId}")
     @Operation(summary = "결제(Mock)", description = "실제 결제 연동 없이 결제 완료 처리합니다. 추후 포트원 연동 예정")
     public ResponseEntity<Void> pay(@PathVariable Long orderId,
+                                    @RequestBody @Valid DeliveryRequest deliveryRequest,
                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
-        paymentService.pay(orderId, userDetails.getMemberId());
+        paymentService.pay(orderId, userDetails.getMemberId(), deliveryRequest);
         return ResponseEntity.ok().build();
     }
 }

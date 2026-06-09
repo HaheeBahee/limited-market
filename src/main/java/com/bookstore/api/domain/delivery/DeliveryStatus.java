@@ -1,5 +1,5 @@
 package com.bookstore.api.domain.delivery;
 
 public enum DeliveryStatus {
-    READY, SHIPPING, DELIVERED
+    PREPARING, SHIPPING, DELIVERED, CANCELLED
 }

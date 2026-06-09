@@ -7,6 +7,7 @@ import com.bookstore.api.domain.member.MemberRepository;
 import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
+import com.bookstore.api.domain.order.dto.OrderDetailResponse;
 import com.bookstore.api.domain.order.dto.OrderListResponse;
 import com.bookstore.api.domain.sale.Sale;
 import com.bookstore.api.domain.sale.SaleRepository;
@@ -27,6 +28,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final MemberRepository memberRepository;
     private final SaleRepository saleRepository;
     private final DeliveryRepository deliveryRepository;
@@ -85,8 +87,17 @@ public class OrderService {
             orderItems.add(OrderItem.create(order, sale, requestedQuantity));
         }
         orderItemRepository.saveAll(orderItems);
+        orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PENDING, null));
 
         return OrderCreateResponse.from(order);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrder(Long orderId, Long memberId) {
+        Order order = orderRepository.findByIdAndMemberId(orderId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+        return OrderDetailResponse.from(order, orderItems);
     }
 
     @Transactional(readOnly = true)
@@ -113,9 +124,11 @@ public class OrderService {
             if (!delivery.isCancellable()) {
                 throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
             }
+            delivery.cancel();
         }
 
         order.cancel();
+        orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.CANCELLED, null));
 
         // 재고 복구
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
