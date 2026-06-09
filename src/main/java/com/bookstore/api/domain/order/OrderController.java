@@ -3,6 +3,7 @@ package com.bookstore.api.domain.order;
 import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.global.security.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,16 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
+    @Operation(summary = "주문 생성", description = "로그인 후 사용 가능합니다. 상단 Authorize 버튼에 토큰을 먼저 입력하세요")
     public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderCreateRequest request,
-                                                      @AuthenticationPrincipal CustomUserDetails userDetails){
+                                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
         OrderCreateResponse response = orderService.create(request, userDetails.getMemberId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{orderId}/cancel/")
-    public ResponseEntity<Void> cancel(@PathVariable Long orderId, @AuthenticationPrincipal CustomUserDetails userDetails){
+    @Operation(summary = "주문 취소", description = "PENDING 또는 PAID 상태의 주문만 취소 가능합니다")
+    public ResponseEntity<Void> cancel(@PathVariable Long orderId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         orderService.cancel(orderId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }

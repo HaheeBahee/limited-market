@@ -5,6 +5,7 @@ import com.bookstore.api.domain.auth.dto.LoginResponse;
 import com.bookstore.api.domain.auth.dto.SignupRequest;
 import com.bookstore.api.domain.auth.dto.TokenResponse;
 import com.bookstore.api.global.exception.auth.InvalidTokenException;
+import com.bookstore.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import com.bookstore.api.global.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +34,7 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
+    @Operation(summary = "회원가입")
     public ResponseEntity<Void> signup(@RequestBody @Valid SignupRequest request) {
         authService.signup(request);
         return ResponseEntity.ok().build();
@@ -41,7 +42,7 @@ public class AuthController {
 
     // 로그인
     @PostMapping("/login")
-    @Operation(description = "accessToken을 받아서 Authorize 버튼에 입력하세요")
+    @Operation(summary = "로그인", description = "로그인 성공 후 반환된 accessToken을 상단 Authorize 버튼에 입력하세요")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
 
         // 1. AuthService에서 두 토큰 모두 받아옴
@@ -65,6 +66,7 @@ public class AuthController {
 
     // Access Token 재발급
     @PostMapping("/reissue")
+    @Operation(summary = "Access Token 재발급", description = "쿠키의 Refresh Token으로 새 Access Token을 발급합니다")
     public ResponseEntity<LoginResponse> reissue(HttpServletRequest request) {
 
         // 쿠키에서 Refresh Token 추출
@@ -92,7 +94,8 @@ public class AuthController {
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails){
+    @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제합니다")
+    public ResponseEntity<Void> logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         // Authorization 헤더에서 Access Token 추출
         String authHeader = request.getHeader("Authorization");
