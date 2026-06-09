@@ -5,6 +5,8 @@ import com.bookstore.api.domain.auth.dto.LoginResponse;
 import com.bookstore.api.domain.auth.dto.SignupRequest;
 import com.bookstore.api.domain.auth.dto.TokenResponse;
 import com.bookstore.api.global.exception.auth.InvalidTokenException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import java.time.Duration;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "1. 회원가입/로그인")
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
@@ -38,6 +41,7 @@ public class AuthController {
 
     // 로그인
     @PostMapping("/login")
+    @Operation(description = "accessToken을 받아서 Authorize 버튼에 입력하세요")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
 
         // 1. AuthService에서 두 토큰 모두 받아옴

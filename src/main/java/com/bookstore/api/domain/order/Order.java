@@ -4,6 +4,7 @@ import com.bookstore.api.domain.member.Member;
 import com.bookstore.api.global.BaseEntity;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -4,6 +4,7 @@ import com.bookstore.api.domain.product.dto.ProductCreateRequest;
 import com.bookstore.api.domain.product.dto.ProductCreateResponse;
 import com.bookstore.api.domain.product.dto.ProductDetailResponse;
 import com.bookstore.api.domain.product.dto.ProductListResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "2. 상품")
 @RequestMapping("/api/v1/products")
 public class ProductController {
 

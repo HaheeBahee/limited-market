@@ -93,10 +93,6 @@ public class Sale extends BaseEntity {
             throw new IllegalArgumentException();
         }
 
-        if (this.remainQuantity < quantity) {
-            throw new IllegalArgumentException();
-        }
-
         this.remainQuantity -= quantity;
 
         if (this.remainQuantity == 0) {
