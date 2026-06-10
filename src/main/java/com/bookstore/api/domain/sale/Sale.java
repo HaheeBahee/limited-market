@@ -45,9 +45,6 @@ public class Sale extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime closeAt;
 
-    @Version
-    private Long version;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SaleStatus saleStatus = SaleStatus.UPCOMING; // UPCOMING, VIP_OPEN, ON_SALE, SOLD_OUT, CLOSED
