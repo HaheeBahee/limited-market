@@ -10,6 +10,7 @@ import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderDetailResponse;
 import com.bookstore.api.domain.order.dto.OrderItemRequest;
 import com.bookstore.api.domain.order.dto.OrderListResponse;
+import com.bookstore.api.domain.order.dto.OrderStatusHistoryResponse;
 import com.bookstore.api.domain.payment.Payment;
 import com.bookstore.api.domain.payment.PaymentRepository;
 import com.bookstore.api.domain.sale.RedisStockService;
@@ -98,10 +99,22 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderStatusHistoryResponse> getOrderHistory(Long orderId, Long memberId) {
+        // 본인 주문인지 확인
+        orderRepository.findByIdAndMemberId(orderId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        return orderStatusHistoryRepository.findByOrderIdOrderByCreatedAtAsc(orderId).stream()
+                .map(OrderStatusHistoryResponse::from)
+                .toList();
+    }
+
     @Transactional
     public void cancel(Long orderId, Long memberId) {
 
-        Order order = orderRepository.findById(orderId)
+        // 동시 취소 요청 방지 - 비관적 락으로 단일 트랜잭션만 처리
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMember().getId().equals(memberId)) {
@@ -109,15 +122,17 @@ public class OrderService {
         }
 
         if (order.getOrderStatus() == OrderStatus.PAID) {
+            // PAID 상태에서는 배송, 결제 정보가 반드시 존재해야 함
+            // 없다면 데이터 정합성 오류
             Delivery delivery = deliveryRepository.findByOrderId(orderId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+                    .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_ERROR));
             if (!delivery.isCancellable()) {
                 throw new CustomException(ErrorCode.ORDER_CANCEL_FAILED);
             }
             delivery.cancel();
 
             Payment payment = paymentRepository.findByOrderId(orderId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+                    .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_ERROR));
             payment.refund();
         }
 

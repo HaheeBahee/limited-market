@@ -69,6 +69,7 @@ public class AuthService {
         return new TokenResponse(accessToken, refreshToken);
     }
 
+    @Transactional(readOnly = true)
     public TokenResponse reissue(String refreshToken) {
 
         if (!jwtProvider.validateToken(refreshToken)) {

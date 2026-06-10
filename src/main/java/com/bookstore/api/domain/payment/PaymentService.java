@@ -26,7 +26,8 @@ public class PaymentService {
     @Transactional
     public void pay(Long orderId, Long memberId, DeliveryRequest deliveryRequest) {
 
-        Order order = orderRepository.findById(orderId)
+        // 동시 결제 요청 방지 - 비관적 락으로 단일 처리
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMember().getId().equals(memberId)) {

@@ -23,6 +23,7 @@ public record SaleCreateRequest(
         int totalQuantity,
 
         @Schema(example = "2026-06-09T09:00:00")
+        @NotNull(message = "VIP 오픈 시간은 필수입니다")
         LocalDateTime vipOpenAt,
 
         @Schema(example = "2026-06-09T10:00:00")

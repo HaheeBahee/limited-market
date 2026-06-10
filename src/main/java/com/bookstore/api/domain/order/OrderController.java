@@ -4,6 +4,7 @@ import com.bookstore.api.domain.order.dto.OrderCreateRequest;
 import com.bookstore.api.domain.order.dto.OrderCreateResponse;
 import com.bookstore.api.domain.order.dto.OrderDetailResponse;
 import com.bookstore.api.domain.order.dto.OrderListResponse;
+import com.bookstore.api.domain.order.dto.OrderStatusHistoryResponse;
 import com.bookstore.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,6 +44,14 @@ public class OrderController {
     public ResponseEntity<OrderDetailResponse> getOrder(@PathVariable Long orderId,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(orderService.getOrder(orderId, userDetails.getMemberId()));
+    }
+
+    @GetMapping("/{orderId}/history")
+    @Operation(summary = "주문 상태 변경 이력 조회", description = "PENDING → PAID → CANCELLED 등 상태 변경 시각을 확인할 수 있습니다")
+    public ResponseEntity<List<OrderStatusHistoryResponse>> getOrderHistory(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(orderService.getOrderHistory(orderId, userDetails.getMemberId()));
     }
 
     @PatchMapping("/{orderId}/cancel")

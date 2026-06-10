@@ -15,12 +15,12 @@ public record SaleListResponse(
         SaleStatus saleStatus,
         LocalDateTime closeAt
 ) {
-    public static SaleListResponse from(Sale sale) {
+    public static SaleListResponse from(Sale sale, int remainQuantity) {
         return new SaleListResponse(
                 sale.getId(),
                 sale.getProduct().getName(),
                 sale.getSalePrice(),
-                sale.getRemainQuantity(),
+                remainQuantity,
                 sale.getSaleStatus(),
                 sale.getCloseAt()
         );

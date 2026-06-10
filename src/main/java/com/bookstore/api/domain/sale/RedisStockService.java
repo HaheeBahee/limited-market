@@ -32,4 +32,9 @@ public class RedisStockService {
     public void restore(Long saleId, int quantity) {
         redisTemplate.opsForValue().increment("sale:stock:" + saleId, quantity);
     }
+
+    public int getStock(Long saleId) {
+        String value = redisTemplate.opsForValue().get("sale:stock:" + saleId);
+        return value != null ? Integer.parseInt(value) : 0;
+    }
 }

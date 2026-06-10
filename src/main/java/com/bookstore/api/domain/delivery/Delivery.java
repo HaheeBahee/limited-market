@@ -38,7 +38,7 @@ public class Delivery extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DeliveryStatus deliveryStatus; // READY, SHIPPING, DELIVERED
+    private DeliveryStatus deliveryStatus; // PREPARING, SHIPPING, DELIVERED, CANCELLED
 
     public static Delivery create(Order order, String recipientName, String phone,
                                    String city, String street, String zipcode) {

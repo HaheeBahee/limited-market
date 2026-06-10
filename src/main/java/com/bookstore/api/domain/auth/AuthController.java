@@ -5,6 +5,7 @@ import com.bookstore.api.domain.auth.dto.LoginResponse;
 import com.bookstore.api.domain.auth.dto.SignupRequest;
 import com.bookstore.api.domain.auth.dto.TokenResponse;
 import com.bookstore.api.global.exception.auth.InvalidTokenException;
+import com.bookstore.api.global.jwt.JwtProperties;
 import com.bookstore.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +32,7 @@ import java.time.Duration;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtProperties jwtProperties;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
@@ -50,7 +52,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Lax")
-                .maxAge(Duration.ofDays(1))
+                .maxAge(Duration.ofMillis(jwtProperties.refreshTokenExpiration()))
                 .path("/")
                 .build();
 
@@ -75,7 +77,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Lax")
-                .maxAge(Duration.ofDays(1))
+                .maxAge(Duration.ofMillis(jwtProperties.refreshTokenExpiration()))
                 .path("/")
                 .build();
 

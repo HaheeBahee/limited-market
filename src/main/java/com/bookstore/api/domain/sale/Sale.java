@@ -3,6 +3,8 @@ package com.bookstore.api.domain.sale;
 import com.bookstore.api.domain.member.Grade;
 import com.bookstore.api.domain.product.Product;
 import com.bookstore.api.global.BaseEntity;
+import com.bookstore.api.global.exception.CustomException;
+import com.bookstore.api.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -92,7 +94,9 @@ public class Sale extends BaseEntity {
         if (quantity <= 0) {
             throw new IllegalArgumentException();
         }
-
+        if (this.remainQuantity < quantity) {
+            throw new CustomException(ErrorCode.OUT_OF_STOCK);
+        }
         this.remainQuantity -= quantity;
 
         if (this.remainQuantity == 0) {

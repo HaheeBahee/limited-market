@@ -19,9 +19,18 @@ public class SaleService {
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
+    private final RedisStockService redisStockService;
 
     @Transactional
     public SaleCreateResponse create(SaleCreateRequest request) {
+
+        // 날짜 순서 검증: vipOpenAt <= generalOpenAt < closeAt
+        if (request.vipOpenAt().isAfter(request.generalOpenAt())) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+        if (!request.generalOpenAt().isBefore(request.closeAt())) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
 
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -42,7 +51,7 @@ public class SaleService {
         return saleRepository.findBySaleStatusIn(
                         List.of(SaleStatus.VIP_OPEN, SaleStatus.ON_SALE)
                 ).stream()
-                .map(SaleListResponse::from)
+                .map(sale -> SaleListResponse.from(sale, redisStockService.getStock(sale.getId())))
                 .toList();
     }
 }

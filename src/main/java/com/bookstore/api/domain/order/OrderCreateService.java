@@ -27,7 +27,8 @@ public class OrderCreateService {
     @Transactional
     public OrderCreateResponse create(Member member, List<Long> saleIds, Map<Long, Integer> quantityBySaleId) {
 
-        List<Sale> sales = saleRepository.findAllById(saleIds);
+        List<Long> sortedSaleIds = saleIds.stream().sorted().toList();
+        List<Sale> sales = saleRepository.findAllByIdWithLock(sortedSaleIds);
 
         if (sales.size() != saleIds.size()) {
             throw new CustomException(ErrorCode.SALE_NOT_FOUND);
