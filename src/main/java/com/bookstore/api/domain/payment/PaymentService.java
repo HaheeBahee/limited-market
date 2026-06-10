@@ -2,12 +2,8 @@ package com.bookstore.api.domain.payment;
 
 import com.bookstore.api.domain.delivery.Delivery;
 import com.bookstore.api.domain.delivery.DeliveryRepository;
-import com.bookstore.api.domain.order.Order;
-import com.bookstore.api.domain.order.OrderRepository;
-import com.bookstore.api.domain.order.OrderStatus;
-import com.bookstore.api.domain.order.OrderStatusHistory;
-import com.bookstore.api.domain.order.OrderStatusHistoryRepository;
-import com.bookstore.api.domain.delivery.dto.DeliveryRequest;
+import com.bookstore.api.domain.order.*;
+import com.bookstore.api.domain.payment.dto.PaymentRequest;
 import com.bookstore.api.global.exception.CustomException;
 import com.bookstore.api.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +20,7 @@ public class PaymentService {
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @Transactional
-    public void pay(Long orderId, Long memberId, DeliveryRequest deliveryRequest) {
+    public void pay(Long orderId, Long memberId, PaymentRequest request) {
 
         // 동시 결제 요청 방지 - 비관적 락으로 단일 처리
         Order order = orderRepository.findByIdWithLock(orderId)
@@ -34,19 +30,24 @@ public class PaymentService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        // TODO: 실제 포트원 연동 시 request.impUid()로 PG사 결제 정보 조회 후 amount 비교
+        if (request.amount().compareTo(order.getTotalPrice()) != 0) {
+            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
         order.markAsPaid();
 
-        Payment payment = Payment.create(order, order.getTotalPrice());
+        Payment payment = Payment.create(order, order.getTotalPrice(), request.impUid());
         paymentRepository.save(payment);
         orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PAID, null));
 
         Delivery delivery = Delivery.create(
                 order,
-                deliveryRequest.recipientName(),
-                deliveryRequest.phone(),
-                deliveryRequest.city(),
-                deliveryRequest.street(),
-                deliveryRequest.zipcode()
+                request.deliveryRequest().recipientName(),
+                request.deliveryRequest().phone(),
+                request.deliveryRequest().city(),
+                request.deliveryRequest().street(),
+                request.deliveryRequest().zipcode()
         );
         deliveryRepository.save(delivery);
     }
