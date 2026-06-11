@@ -1,5 +1,0 @@
-package com.bookstore.api.domain.member;
-
-public enum Grade{
-    BASIC, VIP
-}
