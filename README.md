@@ -26,7 +26,7 @@ Java 17 · Spring Boot · MySQL · Redis
 | 주문 관리 | 주문 · 결제 · 취소 처리         |
 | 재고 관리 | Redis와 MySQL 기반 재고 관리        |
 | 토큰 관리 | Redis 기반 Refresh Token 저장    |
-| 배포    | Docker, Nginx, AWS EC2 기반 운영 |
+| 배포    | Docker, Nginx, AWS EC2 기반 배포 환경 구성 |
 
 ---
 
@@ -59,7 +59,7 @@ Java 17 · Spring Boot · MySQL · Redis
 
 Redis DECR로 품절 요청을 DB 진입 이전에 차단하고, 비관적 락으로 재고 차감의 정합성을 보장했습니다.
 
-* Redis DECR로 불필요한 DB 접근 감소
+* Redis DECR로 품절 요청을 DB 이전 단계에서 차단
 * 비관적 락으로 재고 차감 정합성 확보
 * 동시 10,000건 요청 환경에서 초과 판매 0건 유지
 
@@ -82,16 +82,6 @@ MySQL을 기준 데이터로 두고 Redis를 재고 캐시로 사용했습니다
 ---
 
 ### 4. 운영 환경 구성
-
-```text
-Client
-   ↓
-Nginx
-   ↓
-Spring Boot
-   ↓
-MySQL / Redis
-```
 
 Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
 
