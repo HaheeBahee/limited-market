@@ -1,14 +1,12 @@
 package com.limitedmarket.api.test;
 
-import com.limitedmarket.api.global.exception.member.DuplicateEmailException;
+import com.limitedmarket.api.global.exception.CustomException;
+import com.limitedmarket.api.global.exception.ErrorCode;
 import com.limitedmarket.api.global.response.ApiResponse;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/test")
@@ -16,7 +14,7 @@ public class ExceptionTestController {
 
     @GetMapping("/error")
     public ResponseEntity<ApiResponse<Void>> testError() {
-        throw new DuplicateEmailException();
+        throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
     }
 
     @GetMapping("/success")

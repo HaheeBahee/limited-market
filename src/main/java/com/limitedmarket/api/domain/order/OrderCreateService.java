@@ -22,6 +22,7 @@ public class OrderCreateService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final SaleRepository saleRepository;
 
     @Transactional
@@ -66,6 +67,7 @@ public class OrderCreateService {
             orderItems.add(OrderItem.create(order, sale, requestedQuantity));
         }
         orderItemRepository.saveAll(orderItems);
+        orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PENDING, null));
 
         return OrderCreateResponse.from(order);
     }

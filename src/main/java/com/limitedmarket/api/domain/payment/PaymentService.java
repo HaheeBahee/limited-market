@@ -1,7 +1,6 @@
 package com.limitedmarket.api.domain.payment;
 
-import com.limitedmarket.api.domain.delivery.Delivery;
-import com.limitedmarket.api.domain.delivery.DeliveryRepository;
+import com.limitedmarket.api.domain.delivery.DeliveryService;
 import com.limitedmarket.api.domain.order.*;
 import com.limitedmarket.api.domain.payment.dto.PaymentRequest;
 import com.limitedmarket.api.global.exception.CustomException;
@@ -16,7 +15,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
-    private final DeliveryRepository deliveryRepository;
+    private final DeliveryService deliveryService;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @Transactional
@@ -41,15 +40,7 @@ public class PaymentService {
         paymentRepository.save(payment);
         orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.PAID, null));
 
-        Delivery delivery = Delivery.create(
-                order,
-                request.deliveryRequest().recipientName(),
-                request.deliveryRequest().phone(),
-                request.deliveryRequest().city(),
-                request.deliveryRequest().street(),
-                request.deliveryRequest().zipcode()
-        );
-        deliveryRepository.save(delivery);
+        deliveryService.create(order, request);
     }
 
 }

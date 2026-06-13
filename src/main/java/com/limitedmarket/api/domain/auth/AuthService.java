@@ -6,16 +6,16 @@ import com.limitedmarket.api.domain.auth.dto.TokenResponse;
 import com.limitedmarket.api.domain.member.Member;
 import com.limitedmarket.api.domain.member.MemberRepository;
 import com.limitedmarket.api.domain.member.MemberStatus;
+import com.limitedmarket.api.global.exception.CustomException;
+import com.limitedmarket.api.global.exception.ErrorCode;
 import com.limitedmarket.api.global.exception.auth.InvalidTokenException;
-import com.limitedmarket.api.global.exception.member.DuplicateEmailException;
-import com.limitedmarket.api.global.exception.member.MemberNotFoundException;
 import com.limitedmarket.api.global.jwt.JwtProperties;
 import com.limitedmarket.api.global.jwt.JwtProvider;
 import com.limitedmarket.api.global.redis.RedisService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +33,7 @@ public class AuthService {
     public void signup(SignupRequest request) {
 
         if (memberRepository.existsByEmail(request.email())) {
-            throw new DuplicateEmailException();
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         String encodedPassword = passwordEncoder.encode(request.password());
@@ -51,14 +51,14 @@ public class AuthService {
     public TokenResponse login(LoginRequest request) {
 
         Member member = memberRepository.findByEmail(request.email())
-                .orElseThrow(MemberNotFoundException::new);
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new MemberNotFoundException();
+            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
         if (member.getMemberStatus() == MemberStatus.WITHDRAWN) {
-            throw new MemberNotFoundException();
+            throw new CustomException(ErrorCode.MEMBER_WITHDRAWN);
         }
 
         String accessToken = jwtProvider.createAccessToken(member.getId(), member.getRole());
@@ -73,7 +73,7 @@ public class AuthService {
     public TokenResponse reissue(String refreshToken) {
 
         if (!jwtProvider.validateToken(refreshToken)) {
-            throw new InvalidTokenException();
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
         Long memberId = jwtProvider.getMemberId(refreshToken);
@@ -84,7 +84,7 @@ public class AuthService {
         }
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(MemberNotFoundException::new);
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         String newAccessToken = jwtProvider.createAccessToken(member.getId(), member.getRole());
         String newRefreshToken = jwtProvider.createRefreshToken(member.getId());

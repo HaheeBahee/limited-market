@@ -4,15 +4,10 @@ import com.limitedmarket.api.domain.delivery.Delivery;
 import com.limitedmarket.api.domain.delivery.DeliveryRepository;
 import com.limitedmarket.api.domain.member.Member;
 import com.limitedmarket.api.domain.member.MemberRepository;
-import com.limitedmarket.api.domain.order.dto.OrderCancelledEvent;
-import com.limitedmarket.api.domain.order.dto.OrderCreateRequest;
-import com.limitedmarket.api.domain.order.dto.OrderCreateResponse;
-import com.limitedmarket.api.domain.order.dto.OrderDetailResponse;
-import com.limitedmarket.api.domain.order.dto.OrderItemRequest;
-import com.limitedmarket.api.domain.order.dto.OrderListResponse;
-import com.limitedmarket.api.domain.order.dto.OrderStatusHistoryResponse;
+import com.limitedmarket.api.domain.order.dto.*;
 import com.limitedmarket.api.domain.payment.Payment;
 import com.limitedmarket.api.domain.payment.PaymentRepository;
+import com.limitedmarket.api.domain.payment.PaymentStatus;
 import com.limitedmarket.api.domain.sale.RedisStockService;
 import com.limitedmarket.api.global.exception.CustomException;
 import com.limitedmarket.api.global.exception.ErrorCode;
@@ -131,7 +126,7 @@ public class OrderService {
             }
             delivery.cancel();
 
-            Payment payment = paymentRepository.findByOrderId(orderId)
+            Payment payment = paymentRepository.findByOrderIdAndPaymentStatus(orderId, PaymentStatus.PAID)
                     .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_ERROR));
             payment.refund();
         }
@@ -140,7 +135,7 @@ public class OrderService {
         orderStatusHistoryRepository.save(OrderStatusHistory.create(order, OrderStatus.CANCELLED, null));
 
         Map<Long, Integer> quantityBySaleId = new HashMap<>();
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+        List<OrderItem> orderItems = orderItemRepository.findByOrderWithSale(order);
         for (OrderItem orderItem : orderItems) {
             orderItem.getSale().restoreStock(orderItem.getQuantity(), LocalDateTime.now());
             quantityBySaleId.put(orderItem.getSale().getId(), orderItem.getQuantity());

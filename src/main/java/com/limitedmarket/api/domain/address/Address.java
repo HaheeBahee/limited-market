@@ -3,10 +3,13 @@ package com.limitedmarket.api.domain.address;
 import com.limitedmarket.api.domain.member.Member;
 import com.limitedmarket.api.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address extends BaseEntity {
 
     @Id

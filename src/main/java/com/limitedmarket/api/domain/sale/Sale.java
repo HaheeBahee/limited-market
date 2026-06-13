@@ -89,7 +89,7 @@ public class Sale extends BaseEntity {
 
     public void decreaseStock(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException();
+            throw new CustomException(ErrorCode.INVALID_INPUT);
         }
         if (this.remainQuantity < quantity) {
             throw new CustomException(ErrorCode.OUT_OF_STOCK);
@@ -103,7 +103,7 @@ public class Sale extends BaseEntity {
 
     public void restoreStock(int quantity, LocalDateTime now) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException();
+            throw new CustomException(ErrorCode.INVALID_INPUT);
         }
 
         this.remainQuantity += quantity;
