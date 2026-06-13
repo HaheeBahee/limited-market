@@ -45,13 +45,9 @@ Java 17 · Spring Boot · MySQL · Redis
 
 ### Architecture
 
-> 이미지 파일 경로는 실제 저장 위치에 맞게 수정해야 합니다.
-
 ![Architecture](docs/images/architecture.png)
 
 ### ERD
-
-> 이미지 파일 경로는 실제 저장 위치에 맞게 수정해야 합니다.
 
 ![ERD](docs/images/erd.png)
 
@@ -128,7 +124,7 @@ Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
 ## 🚀 실행 방법
 
 ```bash
-git clone https://github.com/HaheeBahee/api.git
+git clone https://github.com/HaheeBahee/limited-market.git
 
 docker-compose up -d
 
