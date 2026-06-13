@@ -112,7 +112,7 @@ http://localhost:8080/swagger-ui/index.html
 http://13.124.129.7/swagger-ui/index.html
 
 > 개인 AWS EC2 환경에서 운영 중입니다.
-> 서버 상태 및 비용 상황에 따라 접속이 제한될 수 있습니다.
+> 서버 상태에 따라 일시적으로 접속이 제한될 수 있습니다.
 
 ---
 
