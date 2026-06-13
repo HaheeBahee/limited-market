@@ -96,6 +96,10 @@ Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
 ```bash
 git clone https://github.com/HaheeBahee/limited-market.git
 
+# 환경변수 설정
+cp .env.example .env
+# .env 파일을 열어 값을 채워주세요
+
 docker compose up -d
 ```
 
