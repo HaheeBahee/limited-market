@@ -57,15 +57,7 @@ Java 17 · Spring Boot · MySQL · Redis
 
 ### 1. 선착순 주문 동시성 제어
 
-```text
-Redis DECR
-    ↓
-비관적 락
-    ↓
-주문 생성
-```
-
-Redis 선차감으로 DB 진입 전 품절 요청을 먼저 차단하고, 비관적 락을 함께 사용해 초과 판매를 방지했습니다.
+Redis DECR로 품절 요청을 DB 진입 이전에 차단하고, 비관적 락으로 재고 차감의 정합성을 보장했습니다.
 
 * Redis DECR로 불필요한 DB 접근 감소
 * 비관적 락으로 재고 차감 정합성 확보
@@ -85,18 +77,7 @@ MySQL을 기준 데이터로 두고 Redis를 재고 캐시로 사용했습니다
 
 ### 3. 다중 상품 주문 시 데드락 가능성 감소
 
-여러 상품을 동시에 주문할 때 트랜잭션마다 락 획득 순서가 달라질 수 있다고 판단했습니다.
-
-```text
-상품 목록 정렬
-    ↓
-saleId 오름차순으로 락 획득
-    ↓
-주문 처리
-```
-
-* 모든 트랜잭션이 동일한 순서로 락을 획득하도록 구성
-* 잠재적인 데드락 가능성을 줄이는 방향으로 설계
+다중 상품 주문 시 saleId 오름차순으로 락을 획득하도록 구성해 데드락 가능성을 줄였습니다.
 
 ---
 
@@ -117,7 +98,6 @@ Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
 * Spring Boot, MySQL, Redis, Nginx를 Docker Compose로 구성
 * 외부에는 80 포트만 노출
 * 애플리케이션, DB, Redis는 내부 네트워크로 분리
-* EC2 메모리 장애 발생 시 원인 분석 및 복구 경험
 
 ---
 
@@ -126,9 +106,7 @@ Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
 ```bash
 git clone https://github.com/HaheeBahee/limited-market.git
 
-docker-compose up -d
-
-./gradlew bootRun
+docker compose up -d
 ```
 
 ---
