@@ -50,24 +50,20 @@ Java 17 · Spring Boot · MySQL · Redis
 ## 🔍 핵심 구현
 
 **선착순 주문 동시성 제어**
-Redis DECR로 품절 요청을 DB 진입 이전에 차단하고, 비관적 락으로 재고 차감의 정합성을 보장했습니다.
-
+- Redis DECR로 품절 요청을 DB 진입 이전에 차단
 - 비관적 락으로 재고 차감 정합성 확보
 - 동시 10,000건 요청 환경에서 초과 판매 0건 유지
 
 **Redis와 DB 정합성 관리**
-MySQL을 기준 데이터로 두고 Redis를 재고 캐시로 사용했습니다.
-
+- MySQL을 기준 데이터로 두고 Redis를 재고 캐시로 사용
 - 주문 실패 시 Redis 재고 즉시 복구
 - 주문 취소 시 DB 커밋 이후 Redis 재고 복구
 - 애플리케이션 시작 시 MySQL 기준으로 Redis 재고 재적재
 
 **다중 상품 주문 시 데드락 가능성 감소**
-다중 상품 주문 시 saleId 오름차순으로 락을 획득하도록 구성해 데드락 가능성을 줄였습니다.
+- saleId 오름차순으로 락을 획득하도록 구성해 데드락 가능성 감소
 
 **운영 환경 구성**
-Docker Compose와 Nginx를 이용해 운영 환경을 구성했습니다.
-
 - Spring Boot, MySQL, Redis, Nginx를 Docker Compose로 구성
 - 외부에는 80 포트만 노출
 - 애플리케이션, DB, Redis는 내부 네트워크로 분리
