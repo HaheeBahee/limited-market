@@ -5,7 +5,7 @@ Java 17 · Spring Boot · MySQL · Redis
 
 ---
 
-## 📌 프로젝트를 만든 이유
+## 📌 프로젝트 소개
 
 한정 수량 상품 판매에서 발생하는 초과 판매와 재고 불일치 문제를 다루는 주문 API입니다.
 
@@ -18,7 +18,7 @@ Java 17 · Spring Boot · MySQL · Redis
 | 회원 인증 | JWT 기반 로그인                   |
 | 상품 판매 | 회원 등급별 판매 시작 시간 적용           |
 | 주문 관리 | 주문 · 결제 · 취소 처리         |
-| 재고 관리 | Redis와 MySQL 기반 재고 관리        |
+| 재고 관리 | Redis 선차감 + MySQL 재고 관리      |
 | 토큰 관리 | Redis 기반 Refresh Token 저장    |
 | 배포    | Docker, Nginx, AWS EC2 기반 배포 환경 구성 |
 
@@ -59,11 +59,11 @@ Java 17 · Spring Boot · MySQL · Redis
   - 주문 취소 시 DB 커밋 이후 Redis 재고 복구
   - 애플리케이션 시작 시 MySQL 기준으로 Redis 재고 재적재
 - **다중 상품 주문 시 데드락 가능성 감소**
-  - saleId 오름차순으로 락을 획득하도록 구성해 데드락 가능성 감소
+  - saleId 오름차순으로 락 획득 순서를 통일해 데드락 가능성 감소
 - **운영 환경 구성**
   - Spring Boot, MySQL, Redis, Nginx를 Docker Compose로 구성
   - 외부에는 80 포트만 노출
-  - 애플리케이션, DB, Redis는 내부 네트워크로 분리
+  - 애플리케이션·DB·Redis는 내부 네트워크에서만 통신하도록 구성
 
 > 자세한 설계 과정과 성능 비교는 포트폴리오에서 확인할 수 있습니다.
 
