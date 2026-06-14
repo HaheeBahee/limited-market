@@ -6,7 +6,6 @@ import com.limitedmarket.api.domain.auth.dto.SignupRequest;
 import com.limitedmarket.api.domain.auth.dto.TokenResponse;
 import com.limitedmarket.api.global.exception.CustomException;
 import com.limitedmarket.api.global.exception.ErrorCode;
-import com.limitedmarket.api.global.exception.auth.InvalidTokenException;
 import com.limitedmarket.api.global.jwt.JwtProperties;
 import com.limitedmarket.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,7 +93,7 @@ public class AuthController {
 
         String authHeader = request.getHeader("Authorization");
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
-            throw new InvalidTokenException();
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
         String accessToken = authHeader.substring(7);
 

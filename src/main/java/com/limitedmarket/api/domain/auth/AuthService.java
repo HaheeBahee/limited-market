@@ -8,7 +8,6 @@ import com.limitedmarket.api.domain.member.MemberRepository;
 import com.limitedmarket.api.domain.member.MemberStatus;
 import com.limitedmarket.api.global.exception.CustomException;
 import com.limitedmarket.api.global.exception.ErrorCode;
-import com.limitedmarket.api.global.exception.auth.InvalidTokenException;
 import com.limitedmarket.api.global.jwt.JwtProperties;
 import com.limitedmarket.api.global.jwt.JwtProvider;
 import com.limitedmarket.api.global.redis.RedisService;
@@ -80,7 +79,7 @@ public class AuthService {
 
         String storedRefreshToken = redisService.getRefreshToken(memberId);
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new InvalidTokenException();
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
         Member member = memberRepository.findById(memberId)
