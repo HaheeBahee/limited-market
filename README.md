@@ -7,13 +7,7 @@ Java 17 · Spring Boot · MySQL · Redis
 
 ## 📌 프로젝트를 만든 이유
 
-한정판 상품 판매 환경에서는 짧은 시간에 많은 사용자가 동시에 주문을 시도하면서 다음 문제가 발생할 수 있습니다.
-
-* 초과 판매
-* 재고 불일치
-* 성능 저하
-
-이 프로젝트는 동시성 문제를 해결하면서도 처리량을 유지하는 구조를 직접 설계하고 검증하는 것을 목표로 진행했습니다.
+한정 수량 상품 판매에서 발생하는 초과 판매와 재고 불일치 문제를 다루는 주문 API입니다.
 
 ---
 
@@ -59,7 +53,6 @@ Java 17 · Spring Boot · MySQL · Redis
 
 Redis DECR로 품절 요청을 DB 진입 이전에 차단하고, 비관적 락으로 재고 차감의 정합성을 보장했습니다.
 
-* Redis DECR로 품절 요청을 DB 이전 단계에서 차단
 * 비관적 락으로 재고 차감 정합성 확보
 * 동시 10,000건 요청 환경에서 초과 판매 0건 유지
 
@@ -100,7 +93,10 @@ git clone https://github.com/HaheeBahee/limited-market.git
 cp .env.example .env
 # .env 파일을 열어 값을 채워주세요
 
-docker compose up -d
+docker compose up -d --build
+
+# 테스트 실행
+./gradlew test
 ```
 
 ---
