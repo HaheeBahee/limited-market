@@ -19,8 +19,9 @@ public record SaleCreateRequest(
         BigDecimal salePrice,
 
         @Schema(example = "100")
+        @NotNull(message = "수량은 필수입니다")
         @Positive(message = "수량은 0보다 커야 합니다")
-        int totalQuantity,
+        Integer totalQuantity,
 
         @Schema(example = "2026-06-09T09:00:00")
         @NotNull(message = "VIP 오픈 시간은 필수입니다")
