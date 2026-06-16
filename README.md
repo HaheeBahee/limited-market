@@ -76,6 +76,7 @@ cp .env.example .env
 docker compose up -d --build
 
 # 테스트 실행
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d mysql redis
 ./gradlew test
 ```
 

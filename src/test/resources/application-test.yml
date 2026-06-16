@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:3307/limited_market}
+    username: ${TEST_DB_USERNAME:root}
+    password: ${TEST_DB_PASSWORD:${DB_PASSWORD:}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST:localhost}
+      port: ${TEST_REDIS_PORT:6379}
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.hibernate.type: warn
+
+jwt:
+  secret: ${JWT_SECRET:test-secret-key-for-jwt-token-signing-must-be-long-enough}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 259200000

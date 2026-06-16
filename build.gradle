@@ -46,5 +46,21 @@ dependencies {
 }
 
 tasks.named('test') {
+	def envFile = rootProject.file('.env')
+	if (envFile.exists()) {
+		def localEnv = new Properties()
+		envFile.withInputStream { localEnv.load(it) }
+		def envValue = { String key, String defaultValue ->
+			def value = localEnv.getProperty(key)
+			value == null || value.isBlank() ? defaultValue : value
+		}
+
+		def mysqlDatabase = envValue('MYSQL_DATABASE', 'limited_market')
+		environment 'TEST_DB_URL', "jdbc:mysql://localhost:3307/${mysqlDatabase}"
+		environment 'TEST_DB_USERNAME', envValue('DB_USERNAME', 'root')
+		environment 'TEST_DB_PASSWORD', envValue('DB_PASSWORD', envValue('MYSQL_ROOT_PASSWORD', ''))
+		environment 'JWT_SECRET', envValue('JWT_SECRET', 'test-secret-key-for-jwt-token-signing-must-be-long-enough')
+	}
+
 	useJUnitPlatform()
 }
