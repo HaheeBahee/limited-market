@@ -29,7 +29,7 @@ public class PaymentService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // TODO: 실제 포트원 연동 시 request.impUid()로 PG사 결제 정보 조회 후 amount 비교
+        // Mock 결제에서는 요청 금액과 주문 금액 일치 여부만 검증한다.
         if (request.amount().compareTo(order.getTotalPrice()) != 0) {
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
