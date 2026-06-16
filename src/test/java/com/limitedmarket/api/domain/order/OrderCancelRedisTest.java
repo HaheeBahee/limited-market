@@ -1,5 +1,6 @@
 package com.limitedmarket.api.domain.order;
 
+import com.limitedmarket.api.ApiApplication;
 import com.limitedmarket.api.domain.member.Member;
 import com.limitedmarket.api.domain.member.MemberRepository;
 import com.limitedmarket.api.domain.product.Product;
@@ -25,7 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
+@SpringBootTest(classes = ApiApplication.class)
 class OrderCancelRedisTest {
 
     @Autowired
