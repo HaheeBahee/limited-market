@@ -34,6 +34,10 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
+        if (paymentRepository.existsByImpUid(request.impUid())) {
+            throw new CustomException(ErrorCode.DUPLICATE_PAYMENT);
+        }
+
         order.markAsPaid();
 
         Payment payment = Payment.create(order, order.getTotalPrice(), request.impUid());
